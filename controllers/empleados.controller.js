@@ -1,99 +1,154 @@
-import { empleados } from "../db/db.js"
 import { v4 as uuidv4 } from 'uuid';
+import pool from '../db/connection.js';
 
 class EmpleadosController {
     
-    listarTodos() {
-        return ({
-            status: empleados.length === 0 ? 400 : 200,
-            data: empleados.length === 0 ? null : empleados,
-            message: empleados.length === 0 ? "no hay empleados" : "empleados listados",
-        })
+    async listarTodos() {
+        try {
+            const [rows] = await pool.query('SELECT * FROM empleados');
+            
+            return ({
+                status: rows.length === 0 ? 400 : 200,
+                empleados: rows.length === 0 ? null : rows,
+                message: rows.length === 0 ? "no hay empleados" : "empleados listados correctamente",
+            });
+        } catch (error) {
+            return ({
+                status: 500,
+                error: error.message,
+                message: "fallo al listar los empleados"
+            });
+        }
     }
 
-    listarUno(idEmpleado) {
-        const empleadoSeleccionado = empleados.filter(empleado => empleado.id === idEmpleado)
-        return ({
-            status: empleadoSeleccionado.length === 0 ? 400 : 200,
-            data: empleadoSeleccionado.length === 0 ? null : empleadoSeleccionado,
-            message: empleadoSeleccionado.length === 0 ? "no hay empleados" : "empleado listado",
-        })
+    async listarUno(idEmpleado) {
+        try {
+            const [rows] = await pool.query('SELECT * FROM empleados WHERE id = ?', [idEmpleado]);
+            
+            return ({
+                status: rows.length === 0 ? 400 : 200,
+                empleado: rows.length === 0 ? null : rows[0],
+                message: rows.length === 0 ? "no se encontró el empleado" : "empleado listado correctamente",
+            });
+        } catch (error) {
+            return ({
+                status: 500,
+                error: error.message,
+                message: "fallo al buscar el empleado"
+            });
+        }
     }
 
-    crearUno(nuevoEmpleado) {
+    async crearUno(nuevoEmpleado) {
         if (!nuevoEmpleado.cedula || !nuevoEmpleado.nombre || !nuevoEmpleado.edad || !nuevoEmpleado.pagoPorDia) {
             return ({
                 status: 400,
-                data: null,
+                empleado: null,
                 message: "faltan datos necesarios",
-            })
+            });
         } 
 
-        const empleadoAgregar = {
-            id: uuidv4(),
-            cedula: nuevoEmpleado.cedula,
-            nombre: nuevoEmpleado.nombre,
-            edad: nuevoEmpleado.edad,
-            pagoPorDia: nuevoEmpleado.pagoPorDia,
+        try {
+            const id = uuidv4();
+
+            const [result] = await pool.query(
+                'INSERT INTO empleados (id, cedula, nombre, edad, pagoPorDia) VALUES (?, ?, ?, ?, ?)',
+                [
+                    id, 
+                    nuevoEmpleado.cedula, 
+                    nuevoEmpleado.nombre, 
+                    nuevoEmpleado.edad, 
+                    nuevoEmpleado.pagoPorDia
+                ]
+            );
+
+            if (result.affectedRows === 0) {
+                return ({
+                    status: 400,
+                    empleado: null,
+                    message: "no se pudo registrar el empleado",
+                });
+            }
+
+            const [rows] = await pool.query('SELECT * FROM empleados WHERE id = ?', [id]);
+            
+            return ({
+                status: 200,
+                nuevoEmpleado: rows[0],
+                message: "empleado añadido correctamente"
+            });
+
+        } catch (error) {
+            return ({
+                status: 500,
+                error: error.message,
+                message: "fallo al insertar el empleado"
+            });
         }
-        
-        empleados.push(empleadoAgregar)
-        
-        return ({
-            status: 200,
-            data: {
-                empleadoAgregar,
-                empleados
-            },
-            message: "empleados agregados correctamente",
-        })
     }
 
-    atualizarUno(nuevoEmpleado, idEmpleado) {
-        for (let i = 0; i < empleados.length; i++) {
-            if (empleados[i].id === idEmpleado) {
-                empleados[i].cedula = !nuevoEmpleado.cedula ? empleados[i].cedula : nuevoEmpleado.cedula;
-                empleados[i].nombre = !nuevoEmpleado.nombre ? empleados[i].nombre : nuevoEmpleado.nombre;
-                empleados[i].edad = !nuevoEmpleado.edad ? empleados[i].edad : nuevoEmpleado.edad;
-                empleados[i].pagoPorDia = !nuevoEmpleado.pagoPorDia ? empleados[i].pagoPorDia : nuevoEmpleado.pagoPorDia;
-                
+    async actualizarUno(nuevoEmpleado, idEmpleado) {
+        try {
+            const [rows] = await pool.query('SELECT * FROM empleados WHERE id = ?', [idEmpleado]);
+            if (rows.length === 0) {
                 return ({
-                    status: 200,
-                    data: {
-                        empleadoActualizado: empleados[i],
-                        empleados
-                    },
-                    message: "empleado actualizado correctamente",
-                })
+                    status: 400,
+                    empleado: null,
+                    message: "no se encontró el empleado",
+                });
             }
+
+            const cedula = nuevoEmpleado.cedula || rows[0].cedula;
+            const nombre = nuevoEmpleado.nombre || rows[0].nombre;
+            const edad = nuevoEmpleado.edad || rows[0].edad;
+            const pagoPorDia = nuevoEmpleado.pagoPorDia || rows[0].pagoPorDia;
+
+            await pool.query(
+                'UPDATE empleados SET cedula = ?, nombre = ?, edad = ?, pagoPorDia = ? WHERE id = ?',
+                [cedula, nombre, edad, pagoPorDia, idEmpleado]
+            );
+
+            const [rowsActualizados] = await pool.query('SELECT * FROM empleados WHERE id = ?', [idEmpleado]);
+
+            return ({
+                status: 200,
+                empleadoActualizado: rowsActualizados[0],
+                message: "empleado actualizado correctamente",
+            });
+        } catch (error) {
+            return ({
+                status: 500,
+                error: error.message,
+                message: "fallo al actualizar el empleado"
+            });
         }
-        
-        return ({
-            status: 400,
-            data: null,
-            message: "no se encontro el empleado",
-        })
     }
 
-    eliminarUno(idEmpleado) {
-        for (let i = 0; i < empleados.length; i++) {
-            if (empleados[i].id === idEmpleado) {
-                empleados.splice(i, 1)
+    async eliminarUno(idEmpleado) {
+        try {
+            const [rows] = await pool.query('SELECT * FROM empleados WHERE id = ?', [idEmpleado]);
+            if (rows.length === 0) {
                 return ({
-                    status: 200,
-                    data: {
-                        empleados
-                    },
-                    message: "empleado eliminado correctamente",
-                })
+                    status: 400,
+                    empleado: null,
+                    message: "no se encontró el empleado",
+                });
             }
+
+            await pool.query('DELETE FROM empleados WHERE id = ?', [idEmpleado]);
+
+            return ({
+                status: 200,
+                empleadoEliminado: rows[0],
+                message: "empleado eliminado correctamente",
+            });
+        } catch (error) {
+            return ({
+                status: 500,
+                error: error.message,
+                message: "fallo al eliminar el empleado"
+            });
         }
-        
-        return ({
-            status: 400,
-            data: null,
-            message: "no se encontro el empleado",
-        })
     }
 }
 

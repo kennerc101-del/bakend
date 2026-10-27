@@ -1,120 +1,173 @@
-import { provedores, equiposTec } from "../db/db.js"
 import { v4 as uuidv4 } from 'uuid';
+import pool from '../db/connection.js';
 
-class EquiposTecController {
-    listarTodos() {
-        return ({
-            status: equiposTec.length === 0 ? 400 : 200,
-            data: equiposTec.length === 0 ? null : equiposTec,
-            message: equiposTec.length === 0 ? "no hay equipos tecnológicos" : "equipos tecnológicos listados",
-        })
+class EquiposController {
+    
+    async listarTodos() {
+        try {
+            const [rows] = await pool.query('SELECT * FROM equipos_tec');
+            
+            return ({
+                status: rows.length === 0 ? 400 : 200,
+                equipos: rows.length === 0 ? null : rows,
+                message: rows.length === 0 ? "no hay equipos" : "equipos listados correctamente",
+            });
+        } catch (error) {
+            return ({
+                status: 500,
+                error: error.message,
+                message: "fallo al listar los equipos"
+            });
+        }
     }
 
-    listarUno(idEquipoTec) {
-        const equipoTecSeleccionado = equiposTec.filter(equipoTec => equipoTec.id === idEquipoTec)
-        return ({
-            status: equipoTecSeleccionado.length === 0 ? 400 : 200,
-            data: equipoTecSeleccionado.length === 0 ? null : equipoTecSeleccionado,
-            message: equipoTecSeleccionado.length === 0 ? "no hay equipos tecnológicos" : "equipo tecnológico listado",
-        })
+    async listarUno(idEquipo) {
+        try {
+            const [rows] = await pool.query('SELECT * FROM equipos_tec WHERE id = ?', [idEquipo]);
+            
+            return ({
+                status: rows.length === 0 ? 400 : 200,
+                equipo: rows.length === 0 ? null : rows[0],
+                message: rows.length === 0 ? "no se encontró el equipo" : "equipo listado correctamente",
+            });
+        } catch (error) {
+            return ({
+                status: 500,
+                error: error.message,
+                message: "fallo al buscar el equipo"
+            });
+        }
     }
 
-    listarEquiposTecProvedor(idProvedor) { 
-        const equipoTecSeleccionados = equiposTec.filter(equipoTec => equipoTec.idProvedor === idProvedor)
-        const provedoreSeleccionado = provedores.filter(provedor => provedor.id === idProvedor)
-        return ({
-            status: equipoTecSeleccionados.length === 0 ? 400 : 200,
-            data: equipoTecSeleccionados.length === 0 ? null : {
-                provedor: provedoreSeleccionado[0],
-                equipoTec: equipoTecSeleccionados
-            },
-            message: equipoTecSeleccionados.length === 0 ? "no hay equipos tecnológicos de ese provedor" : "equipo tecnológico listado",
-        })
+    async listarPorProveedor(idProvedor) {
+        try {
+            const [rows] = await pool.query('SELECT * FROM equipos_tec WHERE idProvedor = ?', [idProvedor]);
+            
+            return ({
+                status: rows.length === 0 ? 400 : 200,
+                equipos: rows.length === 0 ? null : rows,
+                message: rows.length === 0 ? "no hay equipos para este proveedor" : "equipos por proveedor listados correctamente",
+            });
+        } catch (error) {
+            return ({
+                status: 500,
+                error: error.message,
+                message: "fallo al buscar equipos por proveedor"
+            });
+        }
     }
 
-    crearUno(nuevoEquipoTec, idProvedor) {
-        if (!nuevoEquipoTec.nombre || !nuevoEquipoTec.precio || !nuevoEquipoTec.modelo) {
+    async crearUno(nuevoEquipo, idProvedor) {
+        if (!nuevoEquipo.nombre || !nuevoEquipo.precio || !nuevoEquipo.modelo || !idProvedor) {
             return ({
                 status: 400,
-                data: null,
+                equipo: null,
                 message: "faltan datos necesarios",
-            })
+            });
         } 
-        const existenciaProvedor = provedores.filter(provedor => provedor.id === idProvedor)
-        if (existenciaProvedor.length === 0) {
+
+        try {
+            const id = uuidv4();
+
+            const [result] = await pool.query(
+                'INSERT INTO equipos_tec (id, idProvedor, nombre, precio, modelo) VALUES (?, ?, ?, ?, ?)',
+                [
+                    id, 
+                    idProvedor, 
+                    nuevoEquipo.nombre, 
+                    nuevoEquipo.precio, 
+                    nuevoEquipo.modelo
+                ]
+            );
+
+            if (result.affectedRows === 0) {
+                return ({
+                    status: 400,
+                    equipo: null,
+                    message: "no se pudo registrar el equipo",
+                });
+            }
+
+            const [rows] = await pool.query('SELECT * FROM equipos_tec WHERE id = ?', [id]);
+            
             return ({
-                status: 400,
-                data: null,
-                message: "provedor no encontrado",
-            })
+                status: 200,
+                nuevoEquipo: rows[0],
+                message: "equipo añadido correctamente"
+            });
+
+        } catch (error) {
+            return ({
+                status: 500,
+                error: error.message,
+                message: "fallo al insertar el equipo"
+            });
         }
-
-        const equipoTecAgregar = {
-            id: uuidv4(),
-            idProvedor: idProvedor,
-            nombre: nuevoEquipoTec.nombre,
-            precio: nuevoEquipoTec.precio,
-            modelo: nuevoEquipoTec.modelo,
-        }
-
-        equiposTec.push(equipoTecAgregar)
-
-        return ({
-            status: 200,
-            data: {
-                equipoTecAgregar,
-                equiposTec
-            },
-            message: "equipos tecnológicos agregados correctamente",
-        })
     }
 
-    actualizarUno(nuevoEquipoTec, idEquipoTec) {
-        for (let i = 0; i < equiposTec.length; i++) {
-            if (equiposTec[i].id === idEquipoTec) {
-                equiposTec[i].nombre = !nuevoEquipoTec.nombre ? equiposTec[i].nombre : nuevoEquipoTec.nombre;
-                equiposTec[i].precio = !nuevoEquipoTec.precio ? equiposTec[i].precio : nuevoEquipoTec.precio;
-                equiposTec[i].modelo = !nuevoEquipoTec.modelo ? equiposTec[i].modelo : nuevoEquipoTec.modelo;
-                
+    async actualizarUno(nuevoEquipo, idEquipo) {
+        try {
+            const [rows] = await pool.query('SELECT * FROM equipos_tec WHERE id = ?', [idEquipo]);
+            if (rows.length === 0) {
                 return ({
-                    status: 200,
-                    data: {
-                        equipoTecActualizado: equiposTec[i],
-                        equiposTec
-                    },
-                    message: "equipo tecnológico actualizado correctamente",
-                })
+                    status: 400,
+                    equipo: null,
+                    message: "no se encontró el equipo",
+                });
             }
+
+            const nombre = nuevoEquipo.nombre || rows[0].nombre;
+            const precio = nuevoEquipo.precio || rows[0].precio;
+            const modelo = nuevoEquipo.modelo || rows[0].modelo;
+
+            await pool.query(
+                'UPDATE equipos_tec SET nombre = ?, precio = ?, modelo = ? WHERE id = ?',
+                [nombre, precio, modelo, idEquipo]
+            );
+
+            const [rowsActualizados] = await pool.query('SELECT * FROM equipos_tec WHERE id = ?', [idEquipo]);
+
+            return ({
+                status: 200,
+                equipoActualizado: rowsActualizados[0],
+                message: "equipo actualizado correctamente",
+            });
+        } catch (error) {
+            return ({
+                status: 500,
+                error: error.message,
+                message: "fallo al actualizar el equipo"
+            });
         }
-        
-        return ({
-            status: 400,
-            data: null,
-            message: "no se encontró el equipo tecnológico",
-        })
     }
 
-    eliminarUno(idEquipoTec) {
-        for (let i = 0; i < equiposTec.length; i++) {
-            if (equiposTec[i].id === idEquipoTec) {
-                equiposTec.splice(i, 1)
+    async eliminarUno(idEquipo) {
+        try {
+            const [rows] = await pool.query('SELECT * FROM equipos_tec WHERE id = ?', [idEquipo]);
+            if (rows.length === 0) {
                 return ({
-                    status: 200,
-                    data: {
-                        equiposTec
-                    },
-                    message: "equipo tecnológico eliminado correctamente",
-                })
+                    status: 400,
+                    equipo: null,
+                    message: "no se encontró el equipo",
+                });
             }
+
+            await pool.query('DELETE FROM equipos_tec WHERE id = ?', [idEquipo]);
+
+            return ({
+                status: 200,
+                equipoEliminado: rows[0],
+                message: "equipo eliminado correctamente",
+            });
+        } catch (error) {
+            return ({
+                status: 500,
+                error: error.message,
+                message: "fallo al eliminar el equipo"
+            });
         }
-        
-        return ({
-            status: 400,
-            data: null,
-            message: "no se encontró el equipo tecnológico",
-        })
     }
 }
 
-const equiposTecController = new EquiposTecController();
-export default equiposTecController;
+const equiposController = new EquiposController();
+export default equiposController;
