@@ -2,54 +2,90 @@ import express from "express";
 import empleadosController from "../controllers/empleados.controller.js";
 const router = express.Router();
 
-/* GET listar todos */
-router.get('/todos', async function(req, res, next) {
-    try {
-        const response = await empleadosController.listarTodos();
-        res.status(response.status).json(response);
-    } catch (error) {
-        res.status(500).json({ status: 500, message: error.message });
-    }
+/* GET home page. */
+router.get('/todos', function(req, res, next) {
+  const response = empleadosController.listarTodos();
+  if (response.data === null){
+    res.status(400).json({
+      status: response.status,
+      data: response.data,
+      message: response.message
+    })
+  } else {
+    res.status(200).json({
+      status: response.status,
+      data: response.data,
+      message: response.message
+    })
+  }
 });
 
-/* GET listar uno por ID */
-router.get('/uno/:id', async function(req, res, next) {
-    try {
-        const response = await empleadosController.listarUno(req.params.id);
-        res.status(response.status).json(response);
-    } catch (error) {
-        res.status(500).json({ status: 500, message: error.message });
-    }
+router.get('/uno/:id', function(req, res, next) {
+  const response = empleadosController.listarUno(req.params.id);
+  if (response.data === null){
+    res.status(400).json({
+      status: response.status,
+      data: response.data,
+      message: response.message
+    })
+  } else {
+    res.status(200).json({
+      status: response.status,
+      data: response.data,
+      message: response.message
+    })
+  }
 });
 
-/* POST agregar empleado */
-router.post('/agregar', async function(req, res, next) {
-    try {
-        const response = await empleadosController.crearUno(req.body);
-        res.status(response.status).json(response);
-    } catch (error) {
-        res.status(500).json({ status: 500, message: error.message });
-    }
+router.post('/agregar', function(req, res, next) {
+  const response = empleadosController.crearUno(req.body);
+  if (response.data === null){
+    res.status(400).json({
+      status: response.status,
+      data: response.data,
+      message: response.message
+    })
+  } else {
+    res.status(200).json({
+      status: response.status,
+      data: response.data,
+      message: response.message
+    })
+  }
 });
 
-/* PUT actualizar empleado */
-router.put('/actualizar/:id', async function(req, res, next) {
-    try {
-        const response = await empleadosController.actualizarUno(req.body, req.params.id);
-        res.status(response.status).json(response);
-    } catch (error) {
-        res.status(500).json({ status: 500, message: error.message });
-    }
+router.put('/actualizar/:id', function(req, res, next) {
+  const response = empleadosController.actualizarUno(req.body, req.params.id);
+  if (response.data === null){
+    res.status(400).json({
+      status: response.status,
+      data: response.data,
+      message: response.message
+    })
+  } else {
+    res.status(200).json({
+      status: response.status,
+      data: response.data,
+      message: response.message
+    })
+  }
 });
 
-/* DELETE eliminar empleado */
-router.delete('/eliminar/:id', async function(req, res, next) {
-    try {
-        const response = await empleadosController.eliminarUno(req.params.id);
-        res.status(response.status).json(response);
-    } catch (error) {
-        res.status(500).json({ status: 500, message: error.message });
-    }
+router.delete('/eliminar/:id', function(req, res, next) {
+  const response = empleadosController.eliminarUno(req.params.id);
+  if (response.data === null){
+    res.status(400).json({
+      status: response.status,
+      data: response.data,
+      message: response.message
+    })
+  } else {
+    res.status(200).json({
+      status: response.status,
+      data: response.data,
+      message: response.message
+    })
+  }
 });
 
 export default router;
