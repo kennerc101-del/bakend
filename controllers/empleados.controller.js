@@ -3,12 +3,18 @@ import { v4 as uuidv4 } from 'uuid';
 
 class EmpleadosController {
     
-    listarTodos() {
-        return ({
-            status: empleados.length === 0 ? 400 : 200,
-            data: empleados.length === 0 ? null : empleados,
-            message: empleados.length === 0 ? "no hay empleados" : "empleados listados",
-        })
+listarTodos() {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const response = await empleadosModel.allEmpleados();
+                return resolve({
+                    data: response.rows,
+                    message: "empleados listados de la base de datos"
+                });
+            } catch (error) {
+                return reject({ data: null, message: error.message });
+            }
+        });
     }
 
     listarUno(idEmpleado) {
