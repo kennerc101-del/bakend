@@ -23,9 +23,9 @@ app.use(cookieParser());
 //app.use(express.static(path.join(__dirname, 'public')));
 
 //app.use('/', indexRouter);
-app.use('provedores', provedoresRouter);
-app.use('empleados', empleadosRouter);
-app.use('equiposTec', equiposTecRouter);
+app.use('/provedores', provedoresRouter);
+app.use('/empleados', empleadosRouter);
+app.use('/equiposTec', equiposTecRouter);
 
 
 // catch 404 and forward to error handler

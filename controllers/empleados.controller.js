@@ -1,9 +1,7 @@
-import { empleados } from "../db/db.js"
-import { v4 as uuidv4 } from 'uuid';
+import empleadosModel from "../models/empleados.model.js";
 
 class EmpleadosController {
-    
-listarTodos() {
+    listarTodos() {
         return new Promise(async (resolve, reject) => {
             try {
                 const response = await empleadosModel.allEmpleados();
@@ -17,91 +15,65 @@ listarTodos() {
         });
     }
 
-    listarUno(idEmpleado) {
-        const empleadoSeleccionado = empleados.filter(empleado => empleado.id === idEmpleado)
-        return ({
-            status: empleadoSeleccionado.length === 0 ? 400 : 200,
-            data: empleadoSeleccionado.length === 0 ? null : empleadoSeleccionado,
-            message: empleadoSeleccionado.length === 0 ? "no hay empleados" : "empleado listado",
-        })
-    }
-
-    crearUno(nuevoEmpleado) {
-        if (!nuevoEmpleado.cedula || !nuevoEmpleado.nombre || !nuevoEmpleado.edad || !nuevoEmpleado.pagoPorDia) {
-            return ({
-                status: 400,
-                data: null,
-                message: "faltan datos necesarios",
-            })
-        } 
-
-        const empleadoAgregar = {
-            id: uuidv4(),
-            cedula: nuevoEmpleado.cedula,
-            nombre: nuevoEmpleado.nombre,
-            edad: nuevoEmpleado.edad,
-            pagoPorDia: nuevoEmpleado.pagoPorDia,
-        }
-        
-        empleados.push(empleadoAgregar)
-        
-        return ({
-            status: 200,
-            data: {
-                empleadoAgregar,
-                empleados
-            },
-            message: "empleados agregados correctamente",
-        })
-    }
-
-    atualizarUno(nuevoEmpleado, idEmpleado) {
-        for (let i = 0; i < empleados.length; i++) {
-            if (empleados[i].id === idEmpleado) {
-                empleados[i].cedula = !nuevoEmpleado.cedula ? empleados[i].cedula : nuevoEmpleado.cedula;
-                empleados[i].nombre = !nuevoEmpleado.nombre ? empleados[i].nombre : nuevoEmpleado.nombre;
-                empleados[i].edad = !nuevoEmpleado.edad ? empleados[i].edad : nuevoEmpleado.edad;
-                empleados[i].pagoPorDia = !nuevoEmpleado.pagoPorDia ? empleados[i].pagoPorDia : nuevoEmpleado.pagoPorDia;
-                
-                return ({
-                    status: 200,
-                    data: {
-                        empleadoActualizado: empleados[i],
-                        empleados
-                    },
-                    message: "empleado actualizado correctamente",
-                })
+    listarUno(id) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const empleado = await empleadosModel.oneEmpleado(id);
+                if (empleado.rows.length === 0) {
+                    return reject({ data: null, message: "No se encontró el empleado" });
+                }
+                return resolve({ data: empleado.rows, message: "Empleado encontrado con éxito" });
+            } catch (error) {
+                return reject({ data: null, message: error.message });
             }
-        }
-        
-        return ({
-            status: 400,
-            data: null,
-            message: "no se encontro el empleado",
-        })
+        });
     }
 
-    eliminarUno(idEmpleado) {
-        for (let i = 0; i < empleados.length; i++) {
-            if (empleados[i].id === idEmpleado) {
-                empleados.splice(i, 1)
-                return ({
-                    status: 200,
-                    data: {
-                        empleados
-                    },
-                    message: "empleado eliminado correctamente",
-                })
+    crearUno(nuevo) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                if (!nuevo.cedula || !nuevo.nombre || !nuevo.edad || !nuevo.pagoPorDia) {
+                    return reject({ data: null, message: "Faltan datos indispensables" });
+                }
+                const dbRes = await empleadosModel.addEmpleado(nuevo);
+                const creado = await this.listarUno(dbRes[0].insertId);
+                return resolve({ data: creado.data, message: "Se agregó el empleado" });
+            } catch (error) {
+                return reject({ data: null, message: error.message });
             }
-        }
-        
-        return ({
-            status: 400,
-            data: null,
-            message: "no se encontro el empleado",
-        })
+        });
+    }
+
+    atualizarUno(updateData, id) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const actual = await this.listarUno(id);
+                const emp = actual.data[0];
+
+                emp.cedula = !updateData.cedula ? emp.cedula : updateData.cedula;
+                emp.nombre = !updateData.nombre ? emp.nombre : updateData.nombre;
+                emp.edad = !updateData.edad ? emp.edad : updateData.edad;
+                emp.pagoPorDia = !updateData.pagoPorDia ? emp.pagoPorDia : updateData.pagoPorDia;
+
+                await empleadosModel.updateEmpleado(emp, id);
+                return resolve({ data: { empleadoActualizado: emp }, message: "Empleado actualizado correctamente" });
+            } catch (error) {
+                return reject({ data: null, message: error.message });
+            }
+        });
+    }
+
+    eliminarUno(id) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const seleccionado = await this.listarUno(id);
+                await empleadosModel.deleteEmpleado(id);
+                return resolve({ data: { empleadoEliminado: seleccionado.data[0] }, message: "Empleado eliminado exitosamente" });
+            } catch (error) {
+                return reject({ data: null, message: error.message });
+            }
+        });
     }
 }
 
-const empleadosController = new EmpleadosController();
-export default empleadosController;
+export default new EmpleadosController();
