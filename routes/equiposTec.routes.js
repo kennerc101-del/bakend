@@ -2,64 +2,58 @@ import express from "express";
 import equiposTecController from "../controllers/equiposTec.controller.js";
 const router = express.Router();
 
-/* GET listar todos los equipos tecnológicos */
-router.get('/todos', function(req, res, next) {
-  const response = equiposTecController.listarTodos();
-  res.status(response.status).json({
-    status: response.status,
-    data: response.data,
-    message: response.message
-  });
+router.get('/todos', async function(req, res, next) {
+    try {
+        const response = await equiposTecController.listarTodos();
+        res.status(200).json({ data: response.data, message: response.message });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
 });
 
-/* GET listar un equipo tecnológico por su ID */
-router.get('/uno/:id', function(req, res, next) {
-  const response = equiposTecController.listarUno(req.params.id);
-  res.status(response.status).json({
-    status: response.status,
-    data: response.data,
-    message: response.message
-  });
+router.get('/uno/:id', async function(req, res, next) {
+    try {
+        const response = await equiposTecController.listarUno(req.params.id);
+        res.status(200).json({ data: response.data, message: response.message });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
 });
 
-/* GET listar equipos tecnológicos asociados a un proveedor específico */
-router.get('/equipoPorProvedor/:idProvedor', function(req, res, next) {
-  const response = equiposTecController.listarEquiposTecProvedor(req.params.idProvedor);
-  res.status(response.status).json({
-    status: response.status,
-    data: response.data,
-    message: response.message
-  });
+router.get('/equipoPorProvedor/:idProvedor', async function(req, res, next) {
+    try {
+        const response = await equiposTecController.listarEquiposTecProvedor(req.params.idProvedor);
+        res.status(200).json({ data: response.data, message: response.message });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
 });
 
-/* POST agregar un equipo tecnológico asignado a un proveedor */
-router.post('/agregar/:idProvedor', function(req, res, next) {
-  const response = equiposTecController.crearUno(req.body, req.params.idProvedor);
-  res.status(response.status).json({
-    status: response.status,
-    data: response.data,
-    message: response.message
-  });
+router.post('/agregar/:idProvedor', async function(req, res, next) {
+    try {
+        const response = await equiposTecController.crearUno(req.body, req.params.idProvedor);
+        res.status(201).json({ data: response.data, message: response.message });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
 });
 
-/* PUT actualizar un equipo tecnológico por su ID */
-router.put('/actualizar/:id', function(req, res, next) {
-  const response = equiposTecController.actualizarUno(req.body, req.params.id);
-  res.status(response.status).json({
-    status: response.status,
-    data: response.data,
-    message: response.message
-  });
+router.put('/actualizar/:id', async function(req, res, next) {
+    try {
+        const response = await equiposTecController.actualizarUno(req.body, req.params.id);
+        res.status(200).json({ data: response.data, message: response.message });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
 });
 
-/* DELETE eliminar un equipo tecnológico por su ID */
-router.delete('/eliminar/:id', function(req, res, next) {
-  const response = equiposTecController.eliminarUno(req.params.id);
-  res.status(response.status).json({
-    status: response.status,
-    data: response.data,
-    message: response.message
-  });
+router.delete('/eliminar/:id', async function(req, res, next) {
+    try {
+        const response = await equiposTecController.eliminarUno(req.params.id);
+        res.status(200).json({ data: response.data, message: response.message });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
 });
 
 export default router;
