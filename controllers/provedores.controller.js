@@ -1,100 +1,75 @@
-import { provedores } from "../db/db.js"
-import { v4 as uuidv4 } from 'uuid';
+import provedoresModel from "../models/provedores.model.js";
 
 class ProvedoresController {
-listarTodos(){
-return({
-    status: provedores.length === 0 ? 400 : 200,
-    data: provedores.length === 0 ? null : provedores,
-    message: provedores.length === 0 ? "no hay provedores" : "provedores listados",
-})
-}
-listarUno(idProvedor){
-    const provedorSeleccionado = provedores.filter(provedor => provedor.id === idProvedor)
-return({
-    status: provedorSeleccionado.length === 0 ? 400 : 200,
-    data: provedorSeleccionado.length === 0 ? null : provedorSeleccionado,
-    message: provedorSeleccionado.length === 0 ? "no hay provedores" : "provedor listado",
-})
-}
-crearUno(nuevoProvedor){
-    if (!nuevoProvedor.nombre || !nuevoProvedor.lugar || !nuevoProvedor.dueño) {
-        return({
-    data: 400 ,
-    data: null ,
-    message: "faltan datos necesarios",
-})
-    } 
-
-    const provedorAgregar = {
-        id: uuidv4(),
-        nombre: nuevoProvedor.nombre,
-        lugar: nuevoProvedor.lugar,
-        dueño: nuevoProvedor.dueño,
-
+    listarTodos() {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const response = await provedoresModel.allProvedores();
+                return resolve({ data: response.rows, message: "proveedores listados de la base de datos" });
+            } catch (error) {
+                return reject({ data: null, message: error.message });
+            }
+        });
     }
-    provedores.push(provedorAgregar)
-    return({
-   status: 200,
-    data: {
-        provedorAgregar,
-        provedores
-    },
-    message: "provedores agregados correctamente",
-    })
 
-}
-
-atualizarUno(nuevoProvedor, idProvedor){
-    for (let i = 0; i < provedores.length; i++) {
-      if (provedores[i].id === idProvedor){
-        provedores[i].nombre = !nuevoProvedor.nombre ? provedores[i].nombre : nuevoProvedor.nombre,
-        provedores[i].lugar = !nuevoProvedor.lugar ? provedores[i].lugar : nuevoProvedor.lugar,
-        provedores[i].dueño = !nuevoProvedor.dueño ? provedores[i].dueño : nuevoProvedor.dueño
-        return({
-   status: 200,
-    data: {
-        provedorActualizado : provedores[i],
-        provedores
-    },
-    message: "provedor actualizado correctamente",
-    })
-
-      }
-        
+    listarUno(id) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const prov = await provedoresModel.oneProvedor(id);
+                if (prov.rows.length === 0) {
+                    return reject({ data: null, message: "No se encontró el proveedor" });
+                }
+                return resolve({ data: prov.rows, message: "Proveedor encontrado con éxito" });
+            } catch (error) {
+                return reject({ data: null, message: error.message });
+            }
+        });
     }
-     return({
-   status: 400,
-    data: null,
-    message: "no se encontro el provedor",
-    })
-}
 
-eliminarUno(idProvedor){
-    for (let i = 0; i < provedores.length; i++) {
-  
-        if (provedores[i].id === idProvedor){
-            provedores.splice(i, 1)
-            return({
-   status: 200,
-    data: {
-        provedores
-    },
-    message: "provedor eliminado correctamente",
-    })
-
-        }
-        
+    crearUno(nuevo) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                if (!nuevo.nombre || !nuevo.lugar || !nuevo.dueño) {
+                    return reject({ data: null, message: "Faltan datos indispensables" });
+                }
+                const dbRes = await provedoresModel.addProvedor(nuevo);
+                const creado = await this.listarUno(dbRes[0].insertId);
+                return resolve({ data: creado.data, message: "Se agregó el proveedor" });
+            } catch (error) {
+                return reject({ data: null, message: error.message });
+            }
+        });
     }
-    return({
-   status: 400,
-    data: null,
-    message: "no se encontro el provedor",
-    })
+
+    atualizarUno(updateData, id) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const actual = await this.listarUno(id);
+                const prov = actual.data[0];
+
+                prov.nombre = !updateData.nombre ? prov.nombre : updateData.nombre;
+                prov.lugar = !updateData.lugar ? prov.lugar : updateData.lugar;
+                prov.dueño = !updateData.dueño ? prov.dueño : updateData.dueño;
+
+                await provedoresModel.updateProvedor(prov, id);
+                return resolve({ data: { provedorActualizado: prov }, message: "Proveedor actualizado correctamente" });
+            } catch (error) {
+                return reject({ data: null, message: error.message });
+            }
+        });
+    }
+
+    eliminarUno(id) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const seleccionado = await this.listarUno(id);
+                await provedoresModel.deleteProvedor(id);
+                return resolve({ data: { provedorEliminado: seleccionado.data[0] }, message: "Proveedor eliminado exitosamente" });
+            } catch (error) {
+                return reject({ data: null, message: error.message });
+            }
+        });
+    }
 }
-}
 
-
-
-const provedoresController = new ProvedoresController
-export default provedoresController
+export default new ProvedoresController();
