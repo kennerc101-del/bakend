@@ -1,0 +1,470 @@
+
+Manual De Instalacion
+
+1-Primero se tiene que instalar lo siguiente en el dispositivo:
+
+Node.js.
+
+Un entorno de bases de datos local como XAMPP 
+
+La extensión Thunder Client instalada en Visual Studio Code.
+
+2-Ejecuta el siguiente comando en el terminal con la carpeta del proyecto seleccionada para descargar e instalar todas las librerías necesarias:
+
+npm install
+
+3-Para colocar la base de datos correcta:
+
+Abre XAMPP y enciende Apache y MySQL.
+
+Entra a tu navegador en http://localhost/phpmyadmin.
+
+Crea una nueva base de datos con el nombre exacto: bakend_db.
+
+Haz clic en la base de datos creada, ve a la pestaña Importar, selecciona el archivo de respaldo .sql incluido dentro de la carpeta del proyecto y haz clic en Continuar para cargar todas las tablas y datos.
+4-Crea un archivo llamado .env en la raíz principal del proyecto con el siguiente contenido (asegurándote de que el puerto sea el 4001, de no ser asícambia  ambién el numero del puerto en el archivo .www y las peticiones en tunther client para que coincidan con el puerto seleccionado ):
+
+PORT=4001
+DB_HOST=”localhost”
+DB_USER=”root”
+DB_PASSWORD=””
+DB_NAME=”bakend_db”
+DB_PORT=”3306”
+
+
+El servidor se inicia con el comando npx nodemon
+
+
+
+Manual De Instrucciones
+
+-Módulo: Empleados (/empleados)
+
+Listar todos los empleados
+
+Método: GET
+
+URL: http://localhost:4001/empleados/todos
+
+Obtener un empleado por ID
+
+Método: GET
+
+URL: http://localhost:4001/empleados/uno/1 (Sustituye 1 por el ID real)
+
+Registrar un nuevo empleado
+
+Método: POST
+
+URL: http://localhost:4001/empleados/agregar
+
+Body (JSON) Ejemplo:
+{
+  "cedula": "V-12345678",
+  "nombre": "Carlos Pérez",
+  "edad": 28,
+  "pagoPorDia": 25.5
+}
+
+Actualizar un empleado
+
+Método: PUT
+
+URL: http://localhost:4001/empleados/actualizar/1
+
+Body (JSON) Ejemplo:
+
+JSON
+{
+  "nombre": "Carlos Alberto Pérez",
+  "pagoPorDia": 30.0
+}
+
+Eliminar un empleado
+
+Método: DELETE
+
+URL: http://localhost:4001/empleados/eliminar/1 (Donde 1 es el ID del empleado)
+
+
+-Módulo: Proveedores (/provedores)
+
+Listar todos los proveedores
+
+Método: GET
+
+URL: http://localhost:4001/provedores/todos
+
+Obtener un proveedor por ID
+
+Método: GET
+
+URL: http://localhost:4001/provedores/uno/1
+
+Registrar un nuevo proveedor
+
+Método: POST
+
+URL: http://localhost:4001/provedores/agregar
+
+Body (JSON):
+
+JSON
+{
+  "nombre": "TecnoSuministros C.A.",
+  "lugar": "Valera",
+  "dueño": "Roberto Gómez"
+}
+
+Actualizar un proveedor
+
+Método: PUT
+
+URL: http://localhost:4001/provedores/actualizar/1
+
+Body (JSON):
+
+JSON
+{
+  "lugar": "Trujillo"
+}
+
+Eliminar un proveedor
+
+Método: DELETE
+
+URL: http://localhost:4001/provedores/eliminar/1 (Donde 1 es el ID del proveedor)
+
+
+-Módulo: Equipos Tecnológicos (/equiposTec)
+
+Listar todos los equipos tecnológicos
+
+Método: GET
+
+URL: http://localhost:4001/equiposTec/todos
+
+Obtener un equipo tecnológico por ID
+
+Método: GET
+
+URL: http://localhost:4001/equiposTec/uno/1
+
+Listar equipos asociados a un proveedor específico (Relación)
+
+Método: GET
+
+URL: http://localhost:4001/equiposTec/equipoPorProvedor/1 (Donde 1 es el ID del proveedor)
+
+Registrar un equipo tecnológico (Asignado a un proveedor por URL)
+
+Método: POST
+
+URL: http://localhost:4001/equiposTec/agregar/1 (Donde 1 es el ID del proveedor)
+
+Body (JSON):
+
+JSON
+{
+  "nombre": "Laptop ThinkPad",
+  "precio": 850.0,
+  "modelo": "T14 Gen 2"
+}
+
+Actualizar un equipo tecnológico
+
+Método: PUT
+
+URL: http://localhost:4001/equiposTec/actualizar/1
+
+Body (JSON):
+
+JSON
+{
+  "precio": 800.0
+}
+
+Eliminar un equipo tecnológico
+
+Método: DELETE
+
+URL: http://localhost:4001/equiposTec/eliminar/1 (Donde 1 es el ID delequipoTec)
+
+
+
+Ejemplos para la actividad
+
+-Proveedor 1:
+
+Método: POST | URL: http://localhost:4001/provedores/agregar
+
+Body (JSON):
+
+JSON
+{
+  "nombre": "TecnoSuministros C.A.",
+  "lugar": "Valera",
+  "dueño": "Roberto Gómez"
+}
+
+-Proveedor 2:
+
+Método: POST | URL: http://localhost:4001/provedores/agregar
+
+Body (JSON):
+
+JSON
+{
+  "nombre": "Global Computación",
+  "lugar": "Trujillo",
+  "dueño": "Mariana Rivas"
+}
+
+-Proveedor 3:
+
+Método: POST | URL: http://localhost:4001/provedores/agregar
+
+Body (JSON):
+
+JSON
+{
+  "nombre": "Importaciones Andinas",
+  "lugar": "Caracas",
+  "dueño": "Carlos Mendoza"
+}
+
+-Proveedor 4:
+
+Método: POST | URL: http://localhost:4001/provedores/agregar
+
+Body (JSON):
+
+JSON
+{
+  "nombre": "Soluciones Digitales 24",
+  "lugar": "Barquisimeto",
+  "dueño": "Ana Sofía Pérez"
+}
+
+-Proveedor 5:
+
+Método: POST | URL: http://localhost:4001/provedores/agregar
+
+Body (JSON):
+
+JSON
+{
+  "nombre": "Equipos y Redes Express",
+  "lugar": "Mérida",
+  "dueño": "Luis Altuve"
+}
+
+Listar todos:
+
+Método: GET | URL: http://localhost:4001/provedores/todos
+
+-Listar uno solo :
+
+Método: GET | URL: http://localhost:4001/provedores/uno/2 (el ID deseado)
+
+-Actualizar un proveedor :
+
+Método: PUT | URL: http://localhost:4001/provedores/actualizar/2
+
+Body (JSON):
+
+JSON
+{
+  "lugar": "Valera Centro",
+  "dueño": "Mariana Rivas Actualizada"
+}
+
+-Eliminar un proveedor (ej. el ID 5):
+
+Método: DELETE | URL: http://localhost:4001/provedores/eliminar/5
+
+-Empleado 1:
+
+Método: POST | URL: http://localhost:4001/empleados/agregar
+
+Body (JSON):
+
+JSON
+{
+  "cedula": "V-12345678",
+  "nombre": "Carlos Pérez",
+  "edad": 28,
+  "pagoPorDia": 25.5
+}
+
+-Empleado 2:
+
+Método: POST | URL: http://localhost:4001/empleados/agregar
+
+Body (JSON):
+
+JSON
+{
+  "cedula": "V-23456789",
+  "nombre": "Elena Rodríguez",
+  "edad": 32,
+  "pagoPorDia": 30.0
+}
+
+-Empleado 3:
+
+Método: POST | URL: http://localhost:4001/empleados/agregar
+
+Body (JSON):
+
+JSON
+{
+  "cedula": "V-34567890",
+  "nombre": "José Gregorio Hernández",
+  "edad": 24,
+  "pagoPorDia": 20.0
+}
+
+-Empleado 4:
+
+Método: POST | URL: http://localhost:4001/empleados/agregar
+
+Body (JSON):
+
+JSON
+{
+  "cedula": "V-45678901",
+  "nombre": "Valeria Silva",
+  "edad": 29,
+  "pagoPorDia": 28.0
+}
+
+-Empleado 5:
+
+Método: POST | URL: http://localhost:4001/empleados/agregar
+
+Body (JSON):
+
+JSON
+{
+  "cedula": "V-56789012",
+  "nombre": "Gabriel Torres",
+  "edad": 35,
+  "pagoPorDia": 35.0
+}
+
+-Listar todos:
+
+Método: GET | URL: http://localhost:4001/empleados/todos
+
+-Listar uno solo (ej. el ID 1):
+
+Método: GET | URL: http://localhost:4001/empleados/uno/1
+
+-Actualizar un empleado (ej. modificar pago del ID 1):
+
+Método: PUT | URL: http://localhost:4001/empleados/actualizar/1
+
+Body (JSON):
+
+JSON
+{
+  "nombre": "Carlos Alberto Pérez",
+  "pagoPorDia": 35.0
+}
+
+-Eliminar un empleado (ej. el ID 3):
+
+Método: DELETE | URL: http://localhost:4001/empleados/eliminar/3
+
+-Equipo 1 (Asociado al Proveedor con ID 1):
+
+Método: POST | URL: http://localhost:4001/equiposTec/agregar/1
+
+Body (JSON):
+
+JSON
+{
+  "nombre": "Laptop ThinkPad",
+  "precio": 850.0,
+  "modelo": "T14 Gen 2"
+}
+
+-Equipo 2 (Asociado al Proveedor con ID 1):
+
+Método: POST | URL: http://localhost:4001/equiposTec/agregar/1
+
+Body (JSON):
+
+JSON
+{
+  "nombre": "Monitor Gamer LG",
+  "precio": 220.0,
+  "modelo": "Ultragear 24"
+}
+
+-Equipo 3 (Asociado al Proveedor con ID 2):
+
+Método: POST | URL: http://localhost:4001/equiposTec/agregar/2
+
+Body (JSON):
+
+JSON
+{
+  "nombre": "Teclado Mecánico RGB",
+  "precio": 45.0,
+  "modelo": "Redragon Kumara"
+}
+
+-Equipo 4 (Asociado al Proveedor con ID 2):
+
+Método: POST | URL: http://localhost:4001/equiposTec/agregar/2
+
+Body (JSON):
+
+JSON
+{
+  "nombre": "Mouse Inalámbrico",
+  "precio": 25.0,
+  "modelo": "Logitech M280"
+}
+
+-Equipo 5 (Asociado al Proveedor con ID 3):
+
+Método: POST | URL: http://localhost:4001/equiposTec/agregar/3
+
+Body (JSON):
+
+JSON
+{
+  "nombre": "Impresora Multifuncional",
+  "precio": 180.0,
+  "modelo": "Epson L3210"
+}
+
+-Listar todos los equipos:
+
+Método: GET | URL: http://localhost:4001/equiposTec/todos
+
+-Listar un equipo por su ID (ej. el ID 1):
+
+Método: GET | URL: http://localhost:4001/equiposTec/uno/1
+
+-Listar la relación especial (Equipos filtrados por Proveedor, ej. ID 1):
+
+Método: GET | URL: http://localhost:4001/equiposTec/equipoPorProvedor/1
+
+-Actualizar un equipo (ej. cambiar precio del ID 2):
+
+Método: PUT | URL: http://localhost:4001/equiposTec/actualizar/2
+
+Body (JSON):
+
+JSON
+{
+  "precio": 200.0
+}
+
+-Eliminar un equipo (ej. el ID 4):
+
+Método: DELETE | URL: http://localhost:4001/equiposTec/eliminar/4
