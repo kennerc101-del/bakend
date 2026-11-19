@@ -1,4 +1,4 @@
-
+Plaintext
 Manual De Instalacion
 
 1-Primero se tiene que instalar lo siguiente en el dispositivo:
@@ -9,30 +9,43 @@ Un entorno de bases de datos local como XAMPP
 
 La extensión Thunder Client instalada en Visual Studio Code.
 
-2-Ejecuta el siguiente comando en el terminal con la carpeta del proyecto seleccionada para descargar e instalar todas las librerías necesarias:
+2-Ejecuta el siguiente comando en el terminal con la carpeta del proyecto seleccionada para descargar e instalar todas las librerías necesarias (incluyendo bcryptjs y jsonwebtoken):
 
 npm install
 
-3-Para colocar la base de datos correcta:
+3-Para colocar la base de datos correcta (Migración Automática):
 
 Abre XAMPP y enciende Apache y MySQL.
 
 Entra a tu navegador en http://localhost/phpmyadmin.
 
-Crea una nueva base de datos con el nombre exacto: bakend_db.
+Crea una nueva base de datos vacía con el nombre exacto: bakend_db.
 
-Haz clic en la base de datos creada, ve a la pestaña Importar, selecciona el archivo de respaldo .sql incluido dentro de la carpeta del proyecto y haz clic en Continuar para cargar todas las tablas y datos.
-4-Crea un archivo llamado .env en la raíz principal del proyecto con el siguiente contenido (asegurándote de que el puerto sea el 4001, de no ser asícambia  ambién el numero del puerto en el archivo .www y las peticiones en tunther client para que coincidan con el puerto seleccionado ):
+Al iniciar el servidor en Node.js, el script de migración (migrar) creará automáticamente las 5 tablas del sistema (usuarios, empleados, provedores, equipos_tec y ventas) si no existen.
+
+4-Crea un archivo llamado .env en la carpeta principal que contenga el proyecto con el siguiente contenido (asegurándote de que el puerto sea el 4001, de no ser así cambia también el número del puerto en el archivo bin/www y las peticiones en Thunder Client para que coincidan con el puerto seleccionado):
 
 PORT=4001
-DB_HOST=”localhost”
-DB_USER=”root”
-DB_PASSWORD=””
-DB_NAME=”bakend_db”
-DB_PORT=”3306”
+DB_HOST="localhost"
+DB_USER="root"
+DB_PASSWORD=""
+DB_NAME="bakend_db"
+DB_PORT="3306"
+JWT_SECRET="secretotiendatecnologica"
+ROOT_KEY="clave_maestra_root_123"
 
+5-Ejecución y Acceso al Sistema:
 
-El servidor se inicia con el comando npx nodemon
+El servidor se inicia con el comando:
+npx nodemon
+
+Para iniciar sesión como superusuario base "root" (sin registro previo en la base de datos), enviar una petición POST a http://localhost:4001/usuarios/login con:
+{
+  "username": "root",
+  "password": "clave_maestra_root_123"
+}
+
+Para crear usuarios adicionales en la base de datos, enviar una petición POST a http://localhost:4001/usuarios/crear indicando el campo "role" con uno de los siguientes valores: "admin", "supervisor" o "user".
 
 
 

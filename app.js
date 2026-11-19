@@ -6,9 +6,13 @@ import logger from 'morgan';
 
 //import indexRouter from './routes/index.js';
 //import usersRouter from './routes/users.js';
+import { migrar } from './config/connection.js';
+import usuariosRouter from './routes/usuarios.routes.js';
 import provedoresRouter from './routes/provedores.routes.js';
 import empleadosRouter from './routes/empleados.routes.js';
 import equiposTecRouter from './routes/equiposTec.routes.js';
+
+migrar();
 
 var app = express();
 
@@ -23,6 +27,7 @@ app.use(cookieParser());
 //app.use(express.static(path.join(__dirname, 'public')));
 
 //app.use('/', indexRouter);
+app.use('/usuarios', usuariosRouter);
 app.use('/provedores', provedoresRouter);
 app.use('/empleados', empleadosRouter);
 app.use('/equiposTec', equiposTecRouter);
@@ -40,7 +45,6 @@ app.use(function(err, req, res, next) {
   res.locals.error = req.app.get('env') === 'development' ? err : {};
 
   // render the error page
-  res.status(err.status || 500);
-  res.render('error');
+  res.status(err.status || 500).json({ message: err.message });
 });
 export default app;
