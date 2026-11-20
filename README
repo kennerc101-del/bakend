@@ -4,11 +4,11 @@ Manual De Instalacion
 
 Node.js.
 
-Un entorno de bases de datos local como XAMPP 
+Un entorno de bases de datos local como XAMPP
 
 La extensión Thunder Client instalada en Visual Studio Code.
 
-2-Ejecuta el siguiente comando en el terminal con la carpeta del proyecto seleccionada para descargar e instalar todas las librerías necesarias (incluyendo bcryptjs y jsonwebtoken):
+2-Ejecuta el siguiente comando en el terminal con la carpeta del proyecto seleccionada para descargar e instalar todas las librerías necesarias (incluyendo bcryptjs, jsonwebtoken y dotenv):
 
 npm install
 
@@ -40,17 +40,64 @@ npx nodemon
 
 Para iniciar sesión como superusuario base "root" (sin registro previo en la base de datos), enviar una petición POST a http://localhost:4001/usuarios/login con:
 {
-  "username": "root",
-  "password": "clave_maestra_root_123"
+"username": "root",
+"password": "clave_maestra_root_123"
 }
 
-Para crear usuarios adicionales en la base de datos, enviar una petición POST a http://localhost:4001/usuarios/crear indicando el campo "role" con uno de los siguientes valores: "admin", "supervisor" o "user".
+Al iniciar sesión, el servidor devolverá un token JWT. Para probar las rutas protegidas en Thunder Client, copia ese token, ve a la pestaña Auth -> Bearer y pégalo en el campo Token (o agrégalo en Headers como Authorization: Bearer TU_TOKEN).
 
+Los roles disponibles en el sistema son:
 
+Público (Sin token): Puede consultar (GET) Equipos Tecnológicos y Proveedores.
+
+user: Puede hacer lo público y además registrar/consultar Ventas. Tiene bloqueado el acceso a Empleados y eliminaciones.
+
+supervisor: Puede consultar, registrar y actualizar Proveedores, Equipos, Empleados y Ventas. No puede eliminar registros ni gestionar usuarios.
+
+admin / root: Acceso total (GET, POST, PUT, DELETE) a todos los módulos y creación de usuarios.
 
 Manual De Instrucciones
 
--Módulo: Empleados (/empleados)
+-Módulo: Usuarios y Autenticación (/usuarios)
+
+Iniciar sesión (Obtener Token)
+
+Método: POST
+
+URL: http://localhost:4001/usuarios/login
+
+Body (JSON) Ejemplo:
+{
+"username": "root",
+"password": "clave_maestra_root_123"
+}
+
+Registrar un nuevo usuario (Requiere Token de root o admin)
+
+Método: POST
+
+URL: http://localhost:4001/usuarios/crear
+
+Body (JSON) Ejemplo:
+{
+"username": "admin1",
+"password": "123",
+"role": "admin"
+}
+
+Listar todos los usuarios (Requiere Token de root o admin)
+
+Método: GET
+
+URL: http://localhost:4001/usuarios/todos
+
+Eliminar un usuario (Requiere Token de root o admin)
+
+Método: DELETE
+
+URL: http://localhost:4001/usuarios/eliminar/1 (Donde 1 es el ID del usuario)
+
+-Módulo: Empleados (/empleados) [Requiere Token de supervisor, admin o root]
 
 Listar todos los empleados
 
@@ -72,10 +119,10 @@ URL: http://localhost:4001/empleados/agregar
 
 Body (JSON) Ejemplo:
 {
-  "cedula": "V-12345678",
-  "nombre": "Carlos Pérez",
-  "edad": 28,
-  "pagoPorDia": 25.5
+"cedula": "V-12345678",
+"nombre": "Carlos Pérez",
+"edad": 28,
+"pagoPorDia": 25.5
 }
 
 Actualizar un empleado
@@ -85,138 +132,215 @@ Método: PUT
 URL: http://localhost:4001/empleados/actualizar/1
 
 Body (JSON) Ejemplo:
-
-JSON
 {
-  "nombre": "Carlos Alberto Pérez",
-  "pagoPorDia": 30.0
+"nombre": "Carlos Alberto Pérez",
+"pagoPorDia": 30.0
 }
 
-Eliminar un empleado
+Eliminar un empleado (Solo admin o root)
 
 Método: DELETE
 
 URL: http://localhost:4001/empleados/eliminar/1 (Donde 1 es el ID del empleado)
 
-
 -Módulo: Proveedores (/provedores)
 
-Listar todos los proveedores
+Listar todos los proveedores (Acceso Público - Sin Token)
 
 Método: GET
 
 URL: http://localhost:4001/provedores/todos
 
-Obtener un proveedor por ID
+Obtener un proveedor por ID (Acceso Público - Sin Token)
 
 Método: GET
 
 URL: http://localhost:4001/provedores/uno/1
 
-Registrar un nuevo proveedor
+Registrar un nuevo proveedor (Requiere Token de supervisor, admin o root)
 
 Método: POST
 
 URL: http://localhost:4001/provedores/agregar
 
 Body (JSON):
-
-JSON
 {
-  "nombre": "TecnoSuministros C.A.",
-  "lugar": "Valera",
-  "dueño": "Roberto Gómez"
+"nombre": "TecnoSuministros C.A.",
+"lugar": "Valera",
+"dueño": "Roberto Gómez"
 }
 
-Actualizar un proveedor
+Actualizar un proveedor (Requiere Token de supervisor, admin o root)
 
 Método: PUT
 
 URL: http://localhost:4001/provedores/actualizar/1
 
 Body (JSON):
-
-JSON
 {
-  "lugar": "Trujillo"
+"lugar": "Trujillo"
 }
 
-Eliminar un proveedor
+Eliminar un proveedor (Solo admin o root)
 
 Método: DELETE
 
 URL: http://localhost:4001/provedores/eliminar/1 (Donde 1 es el ID del proveedor)
 
-
 -Módulo: Equipos Tecnológicos (/equiposTec)
 
-Listar todos los equipos tecnológicos
+Listar todos los equipos tecnológicos (Acceso Público - Sin Token)
 
 Método: GET
 
 URL: http://localhost:4001/equiposTec/todos
 
-Obtener un equipo tecnológico por ID
+Obtener un equipo tecnológico por ID (Acceso Público - Sin Token)
 
 Método: GET
 
 URL: http://localhost:4001/equiposTec/uno/1
 
-Listar equipos asociados a un proveedor específico (Relación)
+Listar equipos asociados a un proveedor específico (Acceso Público - Sin Token)
 
 Método: GET
 
 URL: http://localhost:4001/equiposTec/equipoPorProvedor/1 (Donde 1 es el ID del proveedor)
 
-Registrar un equipo tecnológico (Asignado a un proveedor por URL)
+Registrar un equipo tecnológico (Requiere Token de supervisor, admin o root)
 
 Método: POST
 
 URL: http://localhost:4001/equiposTec/agregar/1 (Donde 1 es el ID del proveedor)
 
 Body (JSON):
-
-JSON
 {
-  "nombre": "Laptop ThinkPad",
-  "precio": 850.0,
-  "modelo": "T14 Gen 2"
+"nombre": "Laptop ThinkPad",
+"precio": 850.0,
+"modelo": "T14 Gen 2"
 }
 
-Actualizar un equipo tecnológico
+Actualizar un equipo tecnológico (Requiere Token de supervisor, admin o root)
 
 Método: PUT
 
 URL: http://localhost:4001/equiposTec/actualizar/1
 
 Body (JSON):
-
-JSON
 {
-  "precio": 800.0
+"precio": 800.0
 }
 
-Eliminar un equipo tecnológico
+Eliminar un equipo tecnológico (Solo admin o root)
 
 Método: DELETE
 
-URL: http://localhost:4001/equiposTec/eliminar/1 (Donde 1 es el ID delequipoTec)
+URL: http://localhost:4001/equiposTec/eliminar/1 (Donde 1 es el ID del equipoTec)
 
+-Módulo: Ventas (/ventas) [Requiere Token de user, supervisor, admin o root]
 
+Listar todas las ventas
+
+Método: GET
+
+URL: http://localhost:4001/ventas/todos
+
+Obtener una venta por ID
+
+Método: GET
+
+URL: http://localhost:4001/ventas/uno/1
+
+Registrar una nueva venta (Asociada a un equipo y un empleado)
+
+Método: POST
+
+URL: http://localhost:4001/ventas/agregar
+
+Body (JSON):
+{
+"cliente": "María Gómez",
+"monto": 850.0,
+"fecha": "2026-11-19",
+"idEquipo": 1,
+"idEmpleado": 1
+}
+
+Actualizar una venta (Requiere Token de supervisor, admin o root)
+
+Método: PUT
+
+URL: http://localhost:4001/ventas/actualizar/1
+
+Body (JSON):
+{
+"monto": 800.0
+}
+
+Eliminar una venta (Solo admin o root)
+
+Método: DELETE
+
+URL: http://localhost:4001/ventas/eliminar/1 (Donde 1 es el ID de la venta)
 
 Ejemplos para la actividad
+
+Pruebas de Usuarios y Roles:
+
+-Login Superusuario Root:
+
+Método: POST | URL: http://localhost:4001/usuarios/login
+
+Body (JSON):
+{
+"username": "root",
+"password": "clave_maestra_root_123"
+}
+
+-Crear Usuario Admin (Usando Token de root):
+
+Método: POST | URL: http://localhost:4001/usuarios/crear
+
+Body (JSON):
+{
+"username": "admin1",
+"password": "123",
+"role": "admin"
+}
+
+-Crear Usuario Supervisor (Usando Token de root o admin):
+
+Método: POST | URL: http://localhost:4001/usuarios/crear
+
+Body (JSON):
+{
+"username": "super1",
+"password": "123",
+"role": "supervisor"
+}
+
+-Crear Usuario Básico / Vendedor (Usando Token de root o admin):
+
+Método: POST | URL: http://localhost:4001/usuarios/crear
+
+Body (JSON):
+{
+"username": "user1",
+"password": "123",
+"role": "user"
+}
+
+Pruebas de Proveedores:
 
 -Proveedor 1:
 
 Método: POST | URL: http://localhost:4001/provedores/agregar
 
 Body (JSON):
-
-JSON
 {
-  "nombre": "TecnoSuministros C.A.",
-  "lugar": "Valera",
-  "dueño": "Roberto Gómez"
+"nombre": "TecnoSuministros C.A.",
+"lugar": "Valera",
+"dueño": "Roberto Gómez"
 }
 
 -Proveedor 2:
@@ -224,12 +348,10 @@ JSON
 Método: POST | URL: http://localhost:4001/provedores/agregar
 
 Body (JSON):
-
-JSON
 {
-  "nombre": "Global Computación",
-  "lugar": "Trujillo",
-  "dueño": "Mariana Rivas"
+"nombre": "Global Computación",
+"lugar": "Trujillo",
+"dueño": "Mariana Rivas"
 }
 
 -Proveedor 3:
@@ -237,12 +359,10 @@ JSON
 Método: POST | URL: http://localhost:4001/provedores/agregar
 
 Body (JSON):
-
-JSON
 {
-  "nombre": "Importaciones Andinas",
-  "lugar": "Caracas",
-  "dueño": "Carlos Mendoza"
+"nombre": "Importaciones Andinas",
+"lugar": "Caracas",
+"dueño": "Carlos Mendoza"
 }
 
 -Proveedor 4:
@@ -250,12 +370,10 @@ JSON
 Método: POST | URL: http://localhost:4001/provedores/agregar
 
 Body (JSON):
-
-JSON
 {
-  "nombre": "Soluciones Digitales 24",
-  "lugar": "Barquisimeto",
-  "dueño": "Ana Sofía Pérez"
+"nombre": "Soluciones Digitales 24",
+"lugar": "Barquisimeto",
+"dueño": "Ana Sofía Pérez"
 }
 
 -Proveedor 5:
@@ -263,50 +381,46 @@ JSON
 Método: POST | URL: http://localhost:4001/provedores/agregar
 
 Body (JSON):
-
-JSON
 {
-  "nombre": "Equipos y Redes Express",
-  "lugar": "Mérida",
-  "dueño": "Luis Altuve"
+"nombre": "Equipos y Redes Express",
+"lugar": "Mérida",
+"dueño": "Luis Altuve"
 }
 
-Listar todos:
+-Listar todos (Público - Sin Token):
 
 Método: GET | URL: http://localhost:4001/provedores/todos
 
--Listar uno solo :
+-Listar uno solo (Público - Sin Token):
 
-Método: GET | URL: http://localhost:4001/provedores/uno/2 (el ID deseado)
+Método: GET | URL: http://localhost:4001/provedores/uno/2
 
--Actualizar un proveedor :
+-Actualizar un proveedor:
 
 Método: PUT | URL: http://localhost:4001/provedores/actualizar/2
 
 Body (JSON):
-
-JSON
 {
-  "lugar": "Valera Centro",
-  "dueño": "Mariana Rivas Actualizada"
+"lugar": "Valera Centro",
+"dueño": "Mariana Rivas Actualizada"
 }
 
 -Eliminar un proveedor (ej. el ID 5):
 
 Método: DELETE | URL: http://localhost:4001/provedores/eliminar/5
 
+Pruebas de Empleados:
+
 -Empleado 1:
 
 Método: POST | URL: http://localhost:4001/empleados/agregar
 
 Body (JSON):
-
-JSON
 {
-  "cedula": "V-12345678",
-  "nombre": "Carlos Pérez",
-  "edad": 28,
-  "pagoPorDia": 25.5
+"cedula": "V-12345678",
+"nombre": "Carlos Pérez",
+"edad": 28,
+"pagoPorDia": 25.5
 }
 
 -Empleado 2:
@@ -314,13 +428,11 @@ JSON
 Método: POST | URL: http://localhost:4001/empleados/agregar
 
 Body (JSON):
-
-JSON
 {
-  "cedula": "V-23456789",
-  "nombre": "Elena Rodríguez",
-  "edad": 32,
-  "pagoPorDia": 30.0
+"cedula": "V-23456789",
+"nombre": "Elena Rodríguez",
+"edad": 32,
+"pagoPorDia": 30.0
 }
 
 -Empleado 3:
@@ -328,13 +440,11 @@ JSON
 Método: POST | URL: http://localhost:4001/empleados/agregar
 
 Body (JSON):
-
-JSON
 {
-  "cedula": "V-34567890",
-  "nombre": "José Gregorio Hernández",
-  "edad": 24,
-  "pagoPorDia": 20.0
+"cedula": "V-34567890",
+"nombre": "José Gregorio Hernández",
+"edad": 24,
+"pagoPorDia": 20.0
 }
 
 -Empleado 4:
@@ -342,13 +452,11 @@ JSON
 Método: POST | URL: http://localhost:4001/empleados/agregar
 
 Body (JSON):
-
-JSON
 {
-  "cedula": "V-45678901",
-  "nombre": "Valeria Silva",
-  "edad": 29,
-  "pagoPorDia": 28.0
+"cedula": "V-45678901",
+"nombre": "Valeria Silva",
+"edad": 29,
+"pagoPorDia": 28.0
 }
 
 -Empleado 5:
@@ -356,13 +464,11 @@ JSON
 Método: POST | URL: http://localhost:4001/empleados/agregar
 
 Body (JSON):
-
-JSON
 {
-  "cedula": "V-56789012",
-  "nombre": "Gabriel Torres",
-  "edad": 35,
-  "pagoPorDia": 35.0
+"cedula": "V-56789012",
+"nombre": "Gabriel Torres",
+"edad": 35,
+"pagoPorDia": 35.0
 }
 
 -Listar todos:
@@ -378,28 +484,26 @@ Método: GET | URL: http://localhost:4001/empleados/uno/1
 Método: PUT | URL: http://localhost:4001/empleados/actualizar/1
 
 Body (JSON):
-
-JSON
 {
-  "nombre": "Carlos Alberto Pérez",
-  "pagoPorDia": 35.0
+"nombre": "Carlos Alberto Pérez",
+"pagoPorDia": 35.0
 }
 
 -Eliminar un empleado (ej. el ID 3):
 
 Método: DELETE | URL: http://localhost:4001/empleados/eliminar/3
 
+Pruebas de Equipos Tecnológicos:
+
 -Equipo 1 (Asociado al Proveedor con ID 1):
 
 Método: POST | URL: http://localhost:4001/equiposTec/agregar/1
 
 Body (JSON):
-
-JSON
 {
-  "nombre": "Laptop ThinkPad",
-  "precio": 850.0,
-  "modelo": "T14 Gen 2"
+"nombre": "Laptop ThinkPad",
+"precio": 850.0,
+"modelo": "T14 Gen 2"
 }
 
 -Equipo 2 (Asociado al Proveedor con ID 1):
@@ -407,12 +511,10 @@ JSON
 Método: POST | URL: http://localhost:4001/equiposTec/agregar/1
 
 Body (JSON):
-
-JSON
 {
-  "nombre": "Monitor Gamer LG",
-  "precio": 220.0,
-  "modelo": "Ultragear 24"
+"nombre": "Monitor Gamer LG",
+"precio": 220.0,
+"modelo": "Ultragear 24"
 }
 
 -Equipo 3 (Asociado al Proveedor con ID 2):
@@ -420,12 +522,10 @@ JSON
 Método: POST | URL: http://localhost:4001/equiposTec/agregar/2
 
 Body (JSON):
-
-JSON
 {
-  "nombre": "Teclado Mecánico RGB",
-  "precio": 45.0,
-  "modelo": "Redragon Kumara"
+"nombre": "Teclado Mecánico RGB",
+"precio": 45.0,
+"modelo": "Redragon Kumara"
 }
 
 -Equipo 4 (Asociado al Proveedor con ID 2):
@@ -433,12 +533,10 @@ JSON
 Método: POST | URL: http://localhost:4001/equiposTec/agregar/2
 
 Body (JSON):
-
-JSON
 {
-  "nombre": "Mouse Inalámbrico",
-  "precio": 25.0,
-  "modelo": "Logitech M280"
+"nombre": "Mouse Inalámbrico",
+"precio": 25.0,
+"modelo": "Logitech M280"
 }
 
 -Equipo 5 (Asociado al Proveedor con ID 3):
@@ -446,15 +544,13 @@ JSON
 Método: POST | URL: http://localhost:4001/equiposTec/agregar/3
 
 Body (JSON):
-
-JSON
 {
-  "nombre": "Impresora Multifuncional",
-  "precio": 180.0,
-  "modelo": "Epson L3210"
+"nombre": "Impresora Multifuncional",
+"precio": 180.0,
+"modelo": "Epson L3210"
 }
 
--Listar todos los equipos:
+-Listar todos los equipos (Público - Sin Token):
 
 Método: GET | URL: http://localhost:4001/equiposTec/todos
 
@@ -471,12 +567,62 @@ Método: GET | URL: http://localhost:4001/equiposTec/equipoPorProvedor/1
 Método: PUT | URL: http://localhost:4001/equiposTec/actualizar/2
 
 Body (JSON):
-
-JSON
 {
-  "precio": 200.0
+"precio": 200.0
 }
 
 -Eliminar un equipo (ej. el ID 4):
 
 Método: DELETE | URL: http://localhost:4001/equiposTec/eliminar/4
+
+Pruebas de Ventas y Validación de Permisos:
+
+-Venta 1 (Asociada al Equipo 1 y Empleado 1 - Puede realizarse con Token de user1):
+
+Método: POST | URL: http://localhost:4001/ventas/agregar
+
+Body (JSON):
+{
+"cliente": "Inversiones Los Andes C.A.",
+"monto": 850.0,
+"fecha": "2026-11-19",
+"idEquipo": 1,
+"idEmpleado": 1
+}
+
+-Venta 2 (Asociada al Equipo 2 y Empleado 2):
+
+Método: POST | URL: http://localhost:4001/ventas/agregar
+
+Body (JSON):
+{
+"cliente": "Comercializadora Valera",
+"monto": 200.0,
+"fecha": "2026-11-19",
+"idEquipo": 2,
+"idEmpleado": 2
+}
+
+-Listar todas las ventas:
+
+Método: GET | URL: http://localhost:4001/ventas/todos
+
+-Listar una venta por ID (ej. el ID 1):
+
+Método: GET | URL: http://localhost:4001/ventas/uno/1
+
+-Actualizar una venta (Requiere Token de supervisor, admin o root):
+
+Método: PUT | URL: http://localhost:4001/ventas/actualizar/1
+
+Body (JSON):
+{
+"monto": 820.0
+}
+
+-Eliminar una venta (Solo admin o root):
+
+Método: DELETE | URL: http://localhost:4001/ventas/eliminar/2
+
+-Prueba de bloqueo de seguridad (403 Forbidden):
+Iniciar sesión como user1 (POST /usuarios/login), colocar su token en Auth -> Bearer e intentar consultar GET http://localhost:4001/empleados/todos. El servidor rechazará la petición con código 403 indicando acceso denegado a información privada de empleados.
